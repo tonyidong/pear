@@ -5,32 +5,24 @@ import asyncio
 
 app = Flask(__name__)
 
-# Initialize EdgeDB client
-client = edgedb.create_async_client()
+client = edgedb.create_client()
 
-# Define the EdgeDB schema
-schema = """
-    type Story {
-        required property id -> uuid {
-            default := uuid_generate_v1mc()
-        }
-        required property age -> str;
-        required property art_style -> str;
-        required property length -> int64;
-        required property core_value -> str;
-        required property context -> str;
-        property content -> str;
+section_insertion = client.query("""
+    INSERT Section {
+        text := <str>$text,
+        prompt := <str>$prompt,
+	hplink := <str>$hplink,
+	section_sequence_id := <int32>$section_sequence_id
     }
-"""
+""", text="some text", prompt="some prompt", hplink="google.com", section_sequence_id=0)
 
 
-# Create the EdgeDB schema
-async def create_schema():
-    async with client.transaction():
-        await client.execute(schema)
 
 
-openai.api_key = "YOUR_API_KEY"
+client.close()
+
+
+
 
 
 async def generate_story_async(age, art_style, length, core_value, context):
@@ -54,28 +46,24 @@ async def generate_story():
     core_value = request.form["core_value"]
     context = request.form["context"]
 
-    story_id = await client.query(
-        """
+    story_insertion = client.query("""
+    SELECT (
         INSERT Story {
-            age := <str>$age,
-            art_style := <str>$art_style,
-            length := <int64>$length,
-            core_value := <str>$core_value,
-            context := <str>$context
+            summary := <str>$summary,
+            title := <str>$title,
+            age_range := <str>$age_range,
+            is_success := false
         }
-        """,
-        age=age,
-        art_style=art_style,
-        length=length,
-        core_value=core_value,
-        context=context,
-    )
+    ) {
+        id,
+    }
+    """, summary=context, title="a special title", age_range=age)
 
     asyncio.create_task(
         generate_and_save_story(story_id, age, art_style, length, core_value, context)
     )
 
-    return jsonify({"id": str(story_id)})
+    return jsonify({"id": str(story_insertion.id)})
 
 
 async def generate_and_save_story(
