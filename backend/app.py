@@ -6,7 +6,7 @@ from story_teller import StoryTeller
 
 app = Flask(__name__)
 
-client = edgedb.create_client()
+client = edgedb.create_async_client()
 story_agent = StoryTeller()
 
 async def generate_story_async(story_params):
@@ -14,7 +14,7 @@ async def generate_story_async(story_params):
     return story
 
 
-@app.route("/generate_story", methods=["POST"])
+@app.route("/generate_story", methods=["GET"])
 async def generate_story():
     age = request.form["age"]
     art_style = request.form["art_style"]
@@ -75,7 +75,7 @@ async def ready_status():
         """
         SELECT EXISTS (
             SELECT Story
-            FILTER .id = <uuid>$story_id AND .content IS NOT NULL
+            FILTER .id = <uuid>$story_id AND NOT .content exists <json>{}
         )
         """,
         story_id=story_id,
@@ -90,11 +90,11 @@ async def get_story():
         """
         SELECT Story {
             id,
-            age,
-            art_style,
-            length,
+            year_range,
+            style,
+            length_in_min,
             core_value,
-            context,
+            summary,
             content
         }
         FILTER .id = <uuid>$story_id
@@ -105,11 +105,11 @@ async def get_story():
         return jsonify(
             {
                 "id": str(story.id),
-                "age": story.age,
-                "art_style": story.art_style,
-                "length": story.length,
+                "age": story.year_range,
+                "art_style": story.style,
+                "length": story.length_in_min,
                 "core_value": story.core_value,
-                "context": story.context,
+                "summary": story.summary,
                 "content": story.content,
             }
         )
@@ -118,5 +118,4 @@ async def get_story():
 
 
 if __name__ == "__main__":
-    # asyncio.run(create_schema())
     app.run()
