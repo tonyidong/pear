@@ -16,6 +16,63 @@
             border-radius: 15px; /* Rounded corners */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
         }
+        .info-card h2 {
+            color: #333; /* Dark grey color for the title */
+            font-size: 18px; /* Font size for the title */
+            margin-bottom: 14px; /* Space between items */
+        }
+
+        .info-item {
+            margin-bottom: 10px; /* Space between items */
+            font-size: 16px; /* Font size for items */
+        }
+
+        .info-label {
+            font-weight: bold; /* Bold font for labels */
+            color: #555; /* Darker grey for text */
+        }
+        .btn-outline-none.custom-button {
+            background: none;
+            color: blue;
+            border: none;
+            padding: 0;
+            margin: 0;
+            line-height: normal; /* Ensuring text aligns vertically */
+            margin-bottom: 16px; /* Space between items */
+        }
+
+        .btn-outline-none.custom-button:hover,
+        .btn-outline-none.custom-button:focus {
+            background: none;
+            color: darkblue;
+            border: none;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -23,37 +80,32 @@
     <div class="rounded-frame">
         <div class="row">
             <div class="col-md-4">
+                <div class="info-card">
+                    <h2>Generating Stories with the following settings:</h2>
+                    <div class="info-item"><span class="info-label">Age range:</span> 3-7</div>
+                    <div class="info-item"><span class="info-label">Art style:</span> Cartoon</div>
+                    <div class="info-item"><span class="info-label">Length:</span> 5 minutes</div>
+                    <div class="info-item"><span class="info-label">Core Value:</span> Elbow Grease</div>
+                    <div class="info-item"><span class="info-label">Character:</span> Eagle</div>
+                </div>
                 <!-- Form Start -->
-                <form>
-                    <div class="mb-3">
-                        <label for="question1" class="form-label">Question 1</label>
-                        <select class="form-select" id="question1">
-                            <option selected>Choose...</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="question2" class="form-label">Question 2</label>
-                        <select class="form-select" id="question2">
-                            <option selected>Choose...</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="question3" class="form-label">Question 3</label>
-                        <select class="form-select" id="question3">
-                            <option selected>Choose...</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
+                <div class="info-item"><button class="btn btn-outline-none custom-button">Change Settings</button></div>
+                <div class="info-item"> </div>
+                <div><button type="submit" class="btn btn-primary" id="generateStoryBtn">Generate Story</button></div>
+                <div class="overlay" id="overlay" style="display:none;">
+                    <div class="loader"></div>
+                </div>
+                <script>
+                    document.getElementById('generateStoryBtn').addEventListener('click', function() {
+                        document.getElementById('overlay').style.display = 'flex';
+                    
+                        // To hide the overlay after some time (e.g., 5 seconds)
+                        setTimeout(function() {
+                            document.getElementById('overlay').style.display = 'none';
+                            window.location.href = 'turnjs4/samples/basic/index.html'; // Change 'https://example.com' to your desired URL
+                        }, 3000); // 5000 milliseconds = 5 seconds
+                    });
+                    </script>
                 <!-- Form End -->
             </div>
             <div class="col-md-8">
@@ -63,6 +115,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Bootstrap JS Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
