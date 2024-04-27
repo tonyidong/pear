@@ -14,7 +14,7 @@ class StoryTeller:
         }
 
         self.system_prompt_template = """
-You are a children story teller. Your story is engaging and simple to understand, and it should revolve around a core value, and have satisfying ending. The main character should be non-human, such as but not limited to little bunny, tiger or hamster, whose name is not Timmy. You will generated a detailed description of the main character to use in image generating prompt. You group your story in sections of natural progression, each section should have a prompt for AI to generate relevant illustration of this section. The story should have a relevant title, and it should have some key takeaway for the kid. The result should be in the following JSON format:
+You are a children story teller. Your story is engaging and simple to understand, and it should revolve around a core value, and have satisfying ending. The main character should be non-human, such as but not limited to little bunny, tiger or hamster. You will generated a detailed description of the main character to use in image generating prompt. You group your story in sections of natural progression, each section should have a prompt for AI to generate relevant illustration of this section. The story should have a relevant title, and it should have some key takeaway for the kid. The result should be in the following JSON format:
 
       {
         "title" : "<title>",
@@ -29,7 +29,7 @@ You are a children story teller. Your story is engaging and simple to understand
         "summary":"<summary of this story>"
       }
       
-      Please do not generate any numbers
+      Please do not generate any numbers in the text!!!!!!
       """
 
     def _get_text_prompt(self, length, age_range, value, char_species):
@@ -87,9 +87,12 @@ You are a children story teller. Your story is engaging and simple to understand
         story_return_results = {
             "story_id": story_id,
             "story_main_character": story_text_json["character"],
-            "main_character_species": story_text_json["character"],
+            "main_character_species": char_species,
             "story_title": story_text_json["title"],
             "story_summary": story_text_json["summary"],
+            "story_value": value,
+            "image_style": image_style,
+            "target_age": age_range,
             "sections": section_results
         }
         return story_return_results
@@ -98,12 +101,11 @@ You are a children story teller. Your story is engaging and simple to understand
 if __name__ == "__main__":
     story_params = {
         "story_id": 1,
-        # "theme": "train",
         "age_range": "3-7",
-        "image_style": "japanese animation",
-        "value": "share",
+        "image_style": "smaller main character size",
+        "value": "friend",
         "story_length": 5,
-        "char_species": "bunny"
+        "char_species": "train"
     }
     story_agent = StoryTeller()
     story = story_agent.gen_story_with_image(story_params)
