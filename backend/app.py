@@ -2,23 +2,16 @@ from flask import Flask, request, jsonify
 import edgedb
 import openai
 import asyncio
+from story_teller import StoryTeller
 
 app = Flask(__name__)
 
 client = edgedb.create_client()
+story_agent = StoryTeller()
 
-
-async def generate_story_async(age, art_style, length, core_value, context):
-    prompt = f"Generate a story with the following parameters:\nAge: {age}\nArt Style: {art_style}\nLength: {length} words\nCore Value: {core_value}\nContext: {context}"
-    response = await openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=prompt,
-        max_tokens=length,
-        n=1,
-        stop=None,
-        temperature=0.7,
-    )
-    return response.choices[0].text.strip()
+async def generate_story_async(story_params):
+    story = story_agent.gen_story_with_image(story_params)
+    return story
 
 
 @app.route("/generate_story", methods=["POST"])
@@ -27,44 +20,51 @@ async def generate_story():
     art_style = request.form["art_style"]
     length = int(request.form["length"])
     core_value = request.form["core_value"]
+    char_species = request.form["char_species"]
     context = request.form["context"]
 
     story_insertion = client.query("""
     SELECT (
         INSERT Story {
-            summary := <str>$summary,
-            title := <str>$title,
-            age_range := <str>$age_range,
+
             is_success := false
         }
     ) {
         id,
     }
-    """, summary=context, title="a special title", age_range=age)
+    """)
 
     asyncio.create_task(
-        generate_and_save_story(story_id, age, art_style, length, core_value, context)
+        generate_and_save_story(story_insertion.id, age, art_style, length, core_value, char_species, context)
     )
 
     return jsonify({"id": str(story_insertion.id)})
 
 
 async def generate_and_save_story(
-    story_id, age, art_style, length, core_value, context
+    story_id, age, art_style, length, core_value, char_species, context
 ):
-    generated_story = await generate_story_async(
-        age, art_style, length, core_value, context
-    )
+    story_params = {
+        "story_id": story_id,
+        # "theme": "train",
+        "age_range": age,
+        "image_style": art_style,
+        "value": core_value,
+        "story_length": length,
+        "char_species": char_species
+    }
+    generated_story = await generate_story_async(story_params)
+
     await client.query(
         """
         UPDATE Story
         SET {
-            content := <str>$content
+            content := <json>$content
         }
         FILTER .id = <uuid>$story_id
         """,
         story_id=story_id,
-        content=generated_story,
+        content=generated_story
     )
 
 
@@ -118,5 +118,5 @@ async def get_story():
 
 
 if __name__ == "__main__":
-    asyncio.run(create_schema())
+    # asyncio.run(create_schema())
     app.run()

@@ -13,11 +13,11 @@ async def client():
 @pytest.mark.asyncio
 async def test_generate_story(client):
     data = {
-        "age": "adult",
+        "age": "3-7",
         "art_style": "realistic",
-        "length": 100,
+        "length": 5,
         "core_value": "friendship",
-        "context": "A story about two friends on an adventure",
+        "char_species": "bunny"
     }
     response = await client.post("/generate_story", data=data)
     assert response.status_code == 200
@@ -29,9 +29,9 @@ async def test_generate_story(client):
 async def test_ready_status(client):
     # Generate a story first
     data = {
-        "age": "adult",
+        "age": "3-7",
         "art_style": "realistic",
-        "length": 100,
+        "length": 5,
         "core_value": "friendship",
         "context": "A story about two friends on an adventure",
     }

@@ -98,13 +98,12 @@ You are a children story teller. Your story is engaging and simple to understand
 if __name__ == "__main__":
     story_params = {
         "story_id": 1,
-        "theme": "train",
+        # "theme": "train",
         "age_range": "3-7",
-        "art": "cartoon",
         "image_style": "japanese animation",
-        "value": "honesty",
+        "value": "share",
         "story_length": 5,
-        "char_species": "turtle"
+        "char_species": "bunny"
     }
     story_agent = StoryTeller()
     story = story_agent.gen_story_with_image(story_params)
