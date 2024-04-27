@@ -7,23 +7,6 @@ app = Flask(__name__)
 
 client = edgedb.create_client()
 
-section_insertion = client.query("""
-    INSERT Section {
-        text := <str>$text,
-        prompt := <str>$prompt,
-	hplink := <str>$hplink,
-	section_sequence_id := <int32>$section_sequence_id
-    }
-""", text="some text", prompt="some prompt", hplink="google.com", section_sequence_id=0)
-
-
-
-
-client.close()
-
-
-
-
 
 async def generate_story_async(age, art_style, length, core_value, context):
     prompt = f"Generate a story with the following parameters:\nAge: {age}\nArt Style: {art_style}\nLength: {length} words\nCore Value: {core_value}\nContext: {context}"
