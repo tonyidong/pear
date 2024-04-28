@@ -101,7 +101,6 @@ You are a children story teller. Your story is engaging and simple to understand
                 section_results.append(section_return_result)
 
         story_return_results = {
-            "story_id": story_id,
             "story_main_character": char_des,
             "main_character_species": char_species,
             "story_title": story_title,
@@ -110,6 +109,10 @@ You are a children story teller. Your story is engaging and simple to understand
             "image_style": image_style,
             "target_age": age_range,
             "cover_url": image_cover_url,
+            "story_main_character": story_text_json["character"],
+            "main_character_species": story_text_json["character"],
+            "story_title": story_text_json["title"],
+            "story_summary": story_text_json["summary"],
             "sections": section_results
         }
         return story_return_results
