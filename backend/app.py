@@ -19,9 +19,7 @@ def fire_and_forget(f):
 
 @fire_and_forget
 def generate_story_async(story_params):
-    print("before")
     generated_story = story_agent.gen_story_with_image(story_params)
-    print("after")
     client.query(
         """
         UPDATE Story
