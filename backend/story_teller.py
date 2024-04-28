@@ -120,9 +120,9 @@ if __name__ == "__main__":
         "story_id": 1,
         "age_range": "3-7",
         "image_style": "realistic",
-        "value": "happy",
+        "value": "sad",
         "story_length": 5,
-        "char_species": "panda"
+        "char_species": "alligator"
     }
     story_agent = StoryTeller()
     story = story_agent.gen_story_with_image(story_params)
