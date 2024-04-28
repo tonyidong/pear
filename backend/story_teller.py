@@ -36,7 +36,10 @@ You are a children story teller. Your story is engaging and simple to understand
         return f"Tell a story about {length} minutes in length, for a {age_range} year old kid as target audience, with core value of {value}. The main character of the story is a {char_species}"
 
     def _get_image_prompt(self, image_style, image_content, char_des, char_species):
-        return f"Image requirement: Family friendly, lively and colorful, fits for a kid's attention in the style of {image_style}. Please generate pure image and no text anywhere. Characters should always be non-human!!! Main charactor should have the following characteristics: species is {char_species}.  {char_des}, Image content: {image_content}"
+        return f"Image requirement: Family friendly, lively and colorful, fits for a kid's attention in the style of {image_style}. Please generate pure image and no text anywhere. Characters should always be non-human!!! Main charactor should have the following characteristics: species is {char_species}. Main charactor takes no more than 1/3 of the image. {char_des}, Image content: {image_content}"
+
+    def _get_image_cover_prompt(self, image_style, story_title, summarized_image_content, char_des, char_species):
+        return f"Image requirement: Family friendly, lively and colorful, fits for a kid's attention in the style of {image_style}. Please generate pure image and no text anywhere！！！！！ Characters should always be non-human!!! This is used as the cover of an image book with multiple pages, with the title of {story_title}. Main charactor should have the following characteristics: species is {char_species}. Main charactor takes no more than 1/3 of the image. {char_des}. Summarized content: {summarized_image_content}"
 
     def gen_story_with_image(self, params):
         length = params['story_length']
@@ -58,6 +61,19 @@ You are a children story teller. Your story is engaging and simple to understand
 
         story_text = story_text_response.choices[0].message.content
         story_text_json = json.loads(story_text)
+        story_title = story_text_json["title"]
+        summarized_image_content = story_text_json["summary"]
+        char_des = story_text_json["character"]
+
+        image_cover_prompt = self._get_image_cover_prompt(image_style, story_title, summarized_image_content, char_des, char_species)
+        image_cover_response = self.client.images.generate(
+            model=self.model["image_model"],
+            prompt=image_cover_prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
+        image_cover_url = image_cover_response.data[0].url
 
         section_results = []
         for sec_id, section in enumerate(story_text_json["story"]):
@@ -70,7 +86,7 @@ You are a children story teller. Your story is engaging and simple to understand
 
                 story_image_response = self.client.images.generate(
                     model=self.model["image_model"],
-                    prompt=image_prompt + session_image_prompt,
+                    prompt=image_prompt,
                     size="1024x1024",
                     quality="standard",
                     n=1,
@@ -86,13 +102,14 @@ You are a children story teller. Your story is engaging and simple to understand
 
         story_return_results = {
             "story_id": story_id,
-            "story_main_character": story_text_json["character"],
+            "story_main_character": char_des,
             "main_character_species": char_species,
-            "story_title": story_text_json["title"],
-            "story_summary": story_text_json["summary"],
+            "story_title": story_title,
+            "story_summary": summarized_image_content,
             "story_value": value,
             "image_style": image_style,
             "target_age": age_range,
+            "cover_url": image_cover_url,
             "sections": section_results
         }
         return story_return_results
@@ -102,10 +119,10 @@ if __name__ == "__main__":
     story_params = {
         "story_id": 1,
         "age_range": "3-7",
-        "image_style": "smaller main character size",
-        "value": "friend",
+        "image_style": "realistic",
+        "value": "happy",
         "story_length": 5,
-        "char_species": "train"
+        "char_species": "panda"
     }
     story_agent = StoryTeller()
     story = story_agent.gen_story_with_image(story_params)
