@@ -28,6 +28,7 @@ def generate_story_async(story_params):
         FILTER .id = <uuid>$story_id
         SET {
             content := <json>$content
+            is_success := true
         }
         """,
         story_id=story_params["story_id"],
@@ -83,7 +84,7 @@ async def ready_status():
         """
         SELECT EXISTS (
             SELECT Story
-            FILTER .id = <uuid>$story_id AND NOT .content = <json>{}
+            FILTER .id = <uuid>$story_id AND .is_success = true
         )
         """,
         story_id=story_id,
