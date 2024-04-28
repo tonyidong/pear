@@ -2,19 +2,32 @@ from flask import Flask, request, jsonify
 import edgedb
 import openai
 import asyncio
+import json
 from story_teller import StoryTeller
 
 app = Flask(__name__)
 
-client = edgedb.create_async_client()
+client = edgedb.create_client()
 story_agent = StoryTeller()
 
 async def generate_story_async(story_params):
-    story = story_agent.gen_story_with_image(story_params)
-    return story
+    print("before")
+    generated_story = story_agent.gen_story_with_image(story_params)
+    client.query(
+        """
+        UPDATE Story
+        FILTER .id = <uuid>$story_id
+        SET {
+            content := <json>$content
+        }
+        """,
+        story_id=story_params["story_id"],
+        content=json.dumps(generated_story, indent=4)
+    )
+    print("after")
 
 
-@app.route("/generate_story", methods=["GET"])
+@app.route("/generate_story", methods=["POST"])
 async def generate_story():
     age = request.form["age"]
     art_style = request.form["art_style"]
@@ -26,7 +39,6 @@ async def generate_story():
     story_insertion = client.query("""
     SELECT (
         INSERT Story {
-
             is_success := false
         }
     ) {
@@ -35,10 +47,10 @@ async def generate_story():
     """)
 
     asyncio.create_task(
-        generate_and_save_story(story_insertion.id, age, art_style, length, core_value, char_species, context)
+        generate_and_save_story(story_insertion[0].id, age, art_style, length, core_value, char_species, context)
     )
 
-    return jsonify({"id": str(story_insertion.id)})
+    return jsonify({"id": str(story_insertion[0].id)})
 
 
 async def generate_and_save_story(
@@ -53,29 +65,18 @@ async def generate_and_save_story(
         "story_length": length,
         "char_species": char_species
     }
-    generated_story = await generate_story_async(story_params)
+    await generate_story_async(story_params)
 
-    await client.query(
-        """
-        UPDATE Story
-        SET {
-            content := <json>$content
-        }
-        FILTER .id = <uuid>$story_id
-        """,
-        story_id=story_id,
-        content=generated_story
-    )
 
 
 @app.route("/ready_status", methods=["GET"])
 async def ready_status():
     story_id = request.args.get("id")
-    result = await client.query_single(
+    result = client.query_single(
         """
         SELECT EXISTS (
             SELECT Story
-            FILTER .id = <uuid>$story_id AND NOT .content exists <json>{}
+            FILTER .id = <uuid>$story_id AND NOT .content = <json>{}
         )
         """,
         story_id=story_id,
@@ -86,7 +87,7 @@ async def ready_status():
 @app.route("/get_story", methods=["GET"])
 async def get_story():
     story_id = request.args.get("id")
-    story = await client.query_single(
+    story = client.query_single(
         """
         SELECT Story {
             id,
