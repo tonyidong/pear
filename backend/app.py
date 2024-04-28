@@ -10,9 +10,18 @@ app = Flask(__name__)
 client = edgedb.create_client()
 story_agent = StoryTeller()
 
-async def generate_story_async(story_params):
+
+def fire_and_forget(f):
+    def wrapped(*args, **kwargs):
+        return asyncio.get_event_loop().run_in_executor(None, f, *args, *kwargs)
+
+    return wrapped
+
+@fire_and_forget
+def generate_story_async(story_params):
     print("before")
     generated_story = story_agent.gen_story_with_image(story_params)
+    print("after")
     client.query(
         """
         UPDATE Story
@@ -24,7 +33,6 @@ async def generate_story_async(story_params):
         story_id=story_params["story_id"],
         content=json.dumps(generated_story, indent=4)
     )
-    print("after")
 
 
 @app.route("/generate_story", methods=["POST"])
@@ -46,14 +54,13 @@ async def generate_story():
     }
     """)
 
-    asyncio.create_task(
-        generate_and_save_story(story_insertion[0].id, age, art_style, length, core_value, char_species, context)
-    )
+    
+    generate_and_save_story(story_insertion[0].id, age, art_style, length, core_value, char_species, context)
+    
 
     return jsonify({"id": str(story_insertion[0].id)})
 
-
-async def generate_and_save_story(
+def generate_and_save_story(
     story_id, age, art_style, length, core_value, char_species, context
 ):
     story_params = {
@@ -65,7 +72,7 @@ async def generate_and_save_story(
         "story_length": length,
         "char_species": char_species
     }
-    await generate_story_async(story_params)
+    generate_story_async(story_params)
 
 
 
@@ -119,4 +126,5 @@ async def get_story():
 
 
 if __name__ == "__main__":
-    app.run()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(app.run())
