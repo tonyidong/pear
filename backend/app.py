@@ -27,7 +27,7 @@ def generate_story_async(story_params):
         UPDATE Story
         FILTER .id = <uuid>$story_id
         SET {
-            content := <json>$content
+            content := <json>$content,
             is_success := true
         }
         """,
@@ -55,10 +55,8 @@ async def generate_story():
     }
     """)
 
-    
     generate_and_save_story(story_insertion[0].id, age, art_style, length, core_value, char_species, context)
     
-
     return jsonify({"id": str(story_insertion[0].id)})
 
 def generate_and_save_story(

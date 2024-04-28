@@ -101,7 +101,6 @@ You are a children story teller. Your story is engaging and simple to understand
                 section_results.append(section_return_result)
 
         story_return_results = {
-            "story_id": story_id,
             "story_main_character": char_des,
             "main_character_species": char_species,
             "story_title": story_title,
